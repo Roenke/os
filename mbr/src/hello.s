@@ -6,7 +6,10 @@ _start:
         movw    $0x7c00, %sp
         movw    $msg, %si 
 print:
-        lodsb                   # Load next byte from %si buffer into %al
+        movw    length, %ecx
+        xor     %ax, %ax
+        movw    %ax, %ds
+        lodsb
         cmpb    $0x0, %al
         je      loop
         movw    $0x7, %bx
@@ -18,7 +21,9 @@ loop:
         jmp loop
 msg:
         .asciz  "Hello, world!"
+length:
+        .long . - msg
 
-        . = _start + 510     #mov to 510th byte from 0 pos
-        .byte 0x55           #append boot signature
+        . = _start + 510
+        .byte 0x55
         .byte 0xaa
