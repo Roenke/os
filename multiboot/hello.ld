@@ -3,6 +3,6 @@ ENTRY(start)
 
 SECTIONS
 {
-	. = 0x100000 + SIZEOF_HEADERS;
+	. = 0x100000;
 	.text : { *(.text) }
 }

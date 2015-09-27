@@ -1,17 +1,19 @@
 .text
      .globl start;
-
+        .long   0x1BADB002
+        .long   0x3
+        .long   -(0x1BADB005)
 start:
         movl    $msg, %esi
         movl    $0xB8000, %ebx
 print:
-        lodsb                   # Load next byte from %si buffer into %al
+        lodsb
         cmpb    $0x0, %al
         je      loop
-        movb    $0xB0, (%bx)
+        movb    %al, (%ebx)
         inc     %bx
-        movb    %al, (%bx)
-        inc     %bx
+        movb    $0xF0, (%ebx)
+        inc     %ebx
         jmp     print
 loop:
         jmp loop
