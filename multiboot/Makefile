@@ -6,7 +6,7 @@ hello.o:
 	as -c --32 ./src/hello.s -o./bin/hello.o 
 start: hello
 	qemu-system-i386 -kernel hello
-clear:
+clean:
 	rm ./bin/*.o hello
 
-.PHONY: hello clear start
+.PHONY: hello clean start

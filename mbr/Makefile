@@ -4,6 +4,6 @@ mbr.o:
 	as --32 -c ./src/hello.s -o ./bin/mbr.o
 start: all
 	qemu-system-i386 -hda ./hello
-clear:
+clean:
 	rm ./bin/*.o hello
-.PHONY: all clear start 
+.PHONY: all clean start 
