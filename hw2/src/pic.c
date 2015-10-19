@@ -14,7 +14,6 @@ void send_eoi(uint8_t irq)
 static void set_mask(uint8_t irq_line, uint8_t mask) 
 {
     uint16_t port;
-    uint8_t value;
  
     if (irq_line < 8)
     {
@@ -23,7 +22,6 @@ static void set_mask(uint8_t irq_line, uint8_t mask)
     else 
     {
         port = 0xA1;
-        irq_line -= 8;
     }
 
     outb(port, mask);        
