@@ -10,6 +10,6 @@ void cmain(void)
     init_timer();
 
     asm volatile ("sti");
-
+    
     while(1);
 }

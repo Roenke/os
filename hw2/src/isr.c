@@ -11,7 +11,6 @@ void isr_handler(state_t state)
     if(state.int_num != 32)
     {
         printf ("Unhandled expection %d\n", state.int_num);
-        
     }  
     else
     {
