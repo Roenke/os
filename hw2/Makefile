@@ -7,6 +7,7 @@ LDFLAGS=-m elf_i386
 BIN=./bin/
 SRC=./src/
 ASM=./src/asm/
+TARGET=boot
 
 OBJ= \
 	$(ASM)boot.S.o        \
@@ -21,13 +22,13 @@ OBJ= \
 	$(BIN)screen.c.o      \
 	$(BIN)main.c.o   
 
-all: build
+all: build 
 
 bin:
 	mkdir -p ./bin
 
-build: $(OBJ)
-	$(LD) $(LDFLAGS) -T linker.ld $(OBJ) -o boot
+build: bin $(OBJ)
+	$(LD) $(LDFLAGS) -T linker.ld $(OBJ) -o $(TARGET)
 
 $(ASM)%.S.o: $(ASM)%.S
 	$(AC) $(ACFLAGS) -c $< -o $@
@@ -36,7 +37,7 @@ $(BIN)%.c.o: $(SRC)%.c
 	$(CC) $(CCFLAGS) -c $< -o $@
 
 start: bin build
-	qemu-system-i386 -kernel boot
+	qemu-system-i386 -kernel $(TARGET)
 
 debug:
 	qemu-system-i386 -kernel kernel -d int
@@ -45,6 +46,7 @@ monitor:
 	qemu-system-i386 -kernel kernel -monitor stdio
 
 clean:
-	rm ./bin/*.o boot
+	rm -rf $(BIN)
+	rm $(TARGET)
 
 .PHONY: build clean start
