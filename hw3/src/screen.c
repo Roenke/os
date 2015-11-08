@@ -60,8 +60,9 @@ static void putchar (int c)
         newline:
         xpos = 0;
         ypos++;
-        if (ypos >= LINES)
-        ypos = 0;
+        if (ypos >= LINES){
+            ypos = 0;
+        }
         return;
     }
 

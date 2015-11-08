@@ -2,9 +2,12 @@
 #include "includes/isr.h"
 #include "includes/helpers.h"
 #include "includes/pic.h"
+#include "includes/task.h"
+#include "includes/serial_port.h"
 
+const unsigned int *ptraddr=(unsigned int *)0x00000400;
+const int interrupts_before_switch = 2;
 
-const int interrupts_before_tick = 20;
 void isr_handler(state_t state)
 {
     static int skipped = 0;
@@ -14,13 +17,8 @@ void isr_handler(state_t state)
     }  
     else
     {
-        ++skipped;
-        if (skipped == interrupts_before_tick) 
-        {
-            printf ("tick\n");
-            skipped = 0;
-        }
-
+        printf("tick");
+        next_task();
         send_eoi(0);
     }
 }

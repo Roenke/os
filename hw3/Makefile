@@ -13,6 +13,7 @@ OBJ= \
 	$(ASM)boot.S.o        \
 	$(ASM)dt_loaders.S.o  \
 	$(ASM)ints.S.o        \
+	$(ASM)switch.S.o      \
 	$(BIN)desc_tables.c.o \
 	$(BIN)gdt.c.o         \
 	$(BIN)helpers.c.o     \
@@ -20,6 +21,8 @@ OBJ= \
 	$(BIN)isr.c.o         \
 	$(BIN)pic.c.o         \
 	$(BIN)screen.c.o      \
+	$(BIN)task.c.o        \
+	$(BIN)serial_port.c.o \
 	$(BIN)main.c.o   
 
 all: build 
@@ -37,7 +40,7 @@ $(BIN)%.c.o: $(SRC)%.c
 	$(CC) $(CCFLAGS) -c $< -o $@
 
 start: bin build
-	qemu-system-i386 -kernel $(TARGET)
+	qemu-system-i386 -serial stdio -kernel $(TARGET)
 
 debug:
 	qemu-system-i386 -kernel kernel -d int

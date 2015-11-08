@@ -3,7 +3,7 @@ secondary_handler:
 
     call isr_handler
 
-    popa
+    #popa
 
     add $8, %esp 
     iret           
