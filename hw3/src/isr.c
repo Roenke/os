@@ -18,14 +18,15 @@ void dumpRegs (state_t regs)
 void isr_handler(state_t state)
 {
     static int skipped;
+
     if(state.int_num != 32){
         printf ("Unhandled exception %d\n", state.int_num);
         asm volatile ("cli");
         asm volatile ("hlt");
     }
 
-    dumpRegs(state);
-    next_task();
-
     send_eoi(0);
+
+    // dumpRegs(state);
+    next_task();
 }
