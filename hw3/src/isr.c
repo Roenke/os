@@ -5,20 +5,38 @@
 #include "includes/task.h"
 #include "includes/serial_port.h"
 
-const unsigned int *ptraddr=(unsigned int *)0x00000400;
-const int interrupts_before_switch = 2;
+int threads = 0;            // количество потоков
+int cur_thread = 0;         // номер текущего потока
+state_t regs[100];     // список потоков
+int isInitialized = 0;      // флаг инициализации 
 
 void isr_handler(state_t state)
 {
-    static int skipped = 0;
-    if(state.int_num != 32)
+
+    static int skipped;
+    if(state.int_num != 32){
+        printf ("Unhandled exception %d\n", state.int_num);
+        asm volatile ("cli");   
+        asm volatile ("hlt");
+    }
+
+    if (!isInitialized)
     {
-        printf ("Unhandled expection %d\n", state.int_num);
-    }  
+        // Инициализация многопоточности - записываем данные kernel-потока, выставляем глобальные переменные
+        regs[0] = state;
+        threads = 1;
+        cur_thread = 0;
+        isInitialized = 1;
+        printf("Inited.\n");
+    }
     else
     {
-        printf("tick");
-        next_task();
-        send_eoi(0);
+        // Смена потоков
+        regs[cur_thread] = state;                   // Сохраняем текущий контекст
+        state = regs[(cur_thread + 1) % threads];   // Загружаем контекст следующего потока
+    
+        cur_thread = (cur_thread + 1) % threads;    // Меняем номер текущего потока
     }
+
+    send_eoi(0);
 }
