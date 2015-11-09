@@ -1,21 +1,24 @@
-.globl switch_task
+.global switch_task
 switch_task:
-    movl 4(%esp), %eax
-    movl 8(%esp), %edx
+  mov 4(%esp), %eax
+  mov 8(%esp), %edx
 
-    # Save old callee-save registers
-    pushl %ebp
-    pushl %ebx
-    pushl %esi
-    pushl %edi
+  # save old registers
+  push %ebp
+  push %ebx
+  push %esi
+  push %edi
+  # pushf
+  # switch stacks
+  mov %esp, (%eax)
+  mov %edx, %esp
 
-    # Switch stacks
-    movl %esp, (%eax)
-    movl %edx, %esp
+  # load new registers
+  # popf
+  pop %edi
+  pop %esi
+  pop %ebx
+  pop %ebp
 
-    # Load new callee-save registers
-    popl %edi
-    popl %esi
-    popl %ebx
-    popl %ebp
-    ret
+  sti
+  ret

@@ -1,15 +1,25 @@
 secondary_handler:
     # Сохраняем на стек edi,esi,ebp,esp,ebx,edx,ecx,eax
     pusha                    
-
-    # Сохраняем состояние Data Segment-регистров. Заготовка на будущее, если появятся переходы в user-space
     movw %ds, %ax
-    push %eax
+    pushl %eax
 
+    movw $0x10, %ax        
+    movw %ax, %ds          
+    movw %ax, %es
+    movw %ax, %fs
+    movw %ax, %gs
+    movw %ax, %ss
 
-    call isr_handler
+    call isr_handler        
     pop %eax          
 
+    movw %ax, %ds          
+    movw %ax, %es 
+    movw %ax, %fs   
+    movw %ax, %gs
+    movw %ax, %ss
+    
     popa   
 
     add $8, %esp 

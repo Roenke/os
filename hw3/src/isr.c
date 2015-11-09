@@ -5,38 +5,27 @@
 #include "includes/task.h"
 #include "includes/serial_port.h"
 
-int threads = 0;            // количество потоков
-int cur_thread = 0;         // номер текущего потока
-state_t regs[100];     // список потоков
-int isInitialized = 0;      // флаг инициализации 
+
+void dumpRegs (state_t regs)
+{
+    printf ("ds = %d \n", regs.ds);
+    printf ("edi = %d, esi = %d, ebp = %d, esp = %d\n", regs.edi, regs.esi, regs.ebp, regs.esp);
+    printf ("ebx = %d, ecx = %d, eax = %d\n", regs.ebx, regs.edx, regs.ecx, regs.eax);
+    printf ("intNumber = %d, errorCode = %d\n", regs.int_num, regs.error);
+    printf ("eip = %d, cs = %d, eflags = %d, useresp = %d, ss = %d\n", regs.eip, regs.cs, regs.eflags, regs.useresp, regs.ss);
+}
 
 void isr_handler(state_t state)
 {
-
     static int skipped;
     if(state.int_num != 32){
         printf ("Unhandled exception %d\n", state.int_num);
-        asm volatile ("cli");   
+        asm volatile ("cli");
         asm volatile ("hlt");
     }
 
-    if (!isInitialized)
-    {
-        // Инициализация многопоточности - записываем данные kernel-потока, выставляем глобальные переменные
-        regs[0] = state;
-        threads = 1;
-        cur_thread = 0;
-        isInitialized = 1;
-        printf("Inited.\n");
-    }
-    else
-    {
-        // Смена потоков
-        regs[cur_thread] = state;                   // Сохраняем текущий контекст
-        state = regs[(cur_thread + 1) % threads];   // Загружаем контекст следующего потока
-    
-        cur_thread = (cur_thread + 1) % threads;    // Меняем номер текущего потока
-    }
+    dumpRegs(state);
+    next_task();
 
     send_eoi(0);
 }
