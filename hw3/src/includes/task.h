@@ -3,7 +3,8 @@
 #include "int_types.h"
 #include "isr.h"
 
-struct context {
+struct context 
+{
   uint32_t eflags;
   uint32_t edi;
   uint32_t esi;

@@ -7,16 +7,19 @@
 char buf;
 int is_ready_to_write = 0;
 
-void read(void){
-    char ch;
-    while(1){
+void read(void)
+{
+    while(1)
+    {
         buf = read_serial();
         is_ready_to_write = 1;
     }
 }
 
-void write(void){
-    while(1){
+void write(void)
+{
+    while(1)
+    {
         while(!is_ready_to_write);
         printf("%c", buf);
         is_ready_to_write = 0;

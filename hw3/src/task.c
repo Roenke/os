@@ -3,7 +3,8 @@
 #include "includes/isr.h"
 
 
-struct task{
+struct task
+{
     context_t* regs;
     task_t *next;
 };

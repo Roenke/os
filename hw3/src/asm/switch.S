@@ -1,4 +1,4 @@
-.global switch_task
+.globl switch_task
 switch_task:
   mov 4(%esp), %eax
   mov 8(%esp), %edx
