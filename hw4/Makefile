@@ -17,6 +17,7 @@ OBJ= \
 	$(BIN)gdt.c.o         \
 	$(BIN)helpers.c.o     \
 	$(BIN)idt.c.o         \
+	$(BIN)info.c.o        \
 	$(BIN)isr.c.o         \
 	$(BIN)pic.c.o         \
 	$(BIN)screen.c.o      \
