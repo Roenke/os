@@ -17,3 +17,20 @@ void memset(uint8_t *dest, uint8_t val, uint32_t len)
 {
     for ( ; len != 0; len--) *dest++ = val;
 }
+
+uint32_t readeflags()
+{
+  uint32_t eflags;
+  asm volatile("pushfl; popl %0" : "=r" (eflags));
+  return eflags;
+}
+
+void cli()
+{
+  asm volatile("cli");
+}
+
+void sti()
+{
+  asm volatile("sti");
+}

@@ -3,6 +3,7 @@
 #include "includes/pic.h"
 #include "includes/serial_port.h"
 #include "includes/task.h"
+#include "includes/helpers.h"
 
 char buf;
 int is_ready_to_write = 0;
@@ -38,7 +39,7 @@ void cmain(void)
     add_task(read);
     add_task(write);
 
-    asm volatile ("sti");
+    sti();
     
     while(1);
 }
