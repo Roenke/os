@@ -3,22 +3,22 @@ switch_task:
   mov 4(%esp), %eax
   mov 8(%esp), %edx
 
-  # save old registers
+  # Сохраним старые регистры
   push %ebp
   push %ebx
   push %esi
   push %edi
-  # pushf
-  # switch stacks
+  pushfl
+
+  # Перекинем стеки
   mov %esp, (%eax)
   mov %edx, %esp
 
-  # load new registers
-  # popf
+  # Загрузим новые регистры
+  popfl
   pop %edi
   pop %esi
   pop %ebx
   pop %ebp
 
-  sti
   ret

@@ -4,7 +4,7 @@
 #include "isr.h"
 
 struct context {
-  // uint32_t eflags;
+  uint32_t eflags;
   uint32_t edi;
   uint32_t esi;
   uint32_t ebx;
@@ -13,11 +13,11 @@ struct context {
 };
 
 typedef struct context context_t;
+typedef struct task task_t;
+typedef void   (*thread_function)(void);
 
-
-typedef void (*thread_function)(void);
-
-void next_task();
-extern void switch_task(context_t **, context_t *); 
+void initialize_multithreading();
+void add_task(thread_function fun);
+void next_task(); 
 
 #endif /* TASK_H */

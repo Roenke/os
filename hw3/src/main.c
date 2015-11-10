@@ -23,57 +23,19 @@ void write(void){
     }
 }
 
-void first_thread(void)
-{
-    int counter = 0;
-    printf("In first_thread\n");
-    // asm volatile ("int $0x20");
-    while(1)
-    {
-        counter++;
-        // asm volatile ("sti");
-        if(counter % 10000000 == 0)
-        {
-            counter++;
-            printf("First thread message: %d\n",counter);
-            // asm volatile ("int $0x20");
-        }
-    }
-}
-
-void second_thread(void){
-    int counter = 0;
-    printf("In second_thread\n");
-    while(1){
-        counter++;
-        // asm volatile ("int $0x20");
-        if(counter % 10000000 == 0)
-        {
-            counter++;
-            // asm volatile ("int $0x20");
-            printf("Second thread message: %d\n",counter);
-            if(counter == 200000001){
-            printf("In second. Switch\n");
-            asm volatile ("int $0x20");
-        }
-            // asm volatile ("int $0x20");
-        }
-    }
-}
-
 void cmain(void)
 {
     cls();
     
     init_tables();
     init_timer();
-    // init_serial();
+    init_serial();
 
+    initialize_multithreading();
     add_task(read);
     add_task(write);
 
     asm volatile ("sti");
-
     
     while(1);
 }

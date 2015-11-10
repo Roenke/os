@@ -27,15 +27,3 @@ char read_serial()
 
     return inb(port);
 }
-
-int is_transmit_empty()
-{
-    return inb(port + 5) & 0x20;
-}
-
-void write_serial(char a)
-{
-    while (is_transmit_empty() == 0);
- 
-    outb(a, port);
-}
