@@ -8,4 +8,4 @@ typedef          short int16_t;
 typedef unsigned char  uint8_t;
 typedef          char  int8_t;
 
-#endif
+#endif /* INT_TYPES */

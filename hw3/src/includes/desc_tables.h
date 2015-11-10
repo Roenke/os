@@ -3,4 +3,4 @@
 
 void init_tables();
 
-#endif
+#endif /* DESC_TABLES_H */

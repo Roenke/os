@@ -4,4 +4,4 @@
 void cls (void);
 void printf (const char*, ...);
 
-#endif
+#endif /* SCREEN_H */

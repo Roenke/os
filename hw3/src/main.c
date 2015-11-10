@@ -31,7 +31,7 @@ void cmain(void)
     init_timer();
     init_serial();
 
-    initialize_multithreading();
+    init_multithreading();
     add_task(read);
     add_task(write);
 

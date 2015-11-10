@@ -5,4 +5,4 @@
 
 void init_gdt();
 
-#endif
+#endif /* GDT_H */

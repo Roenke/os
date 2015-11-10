@@ -5,4 +5,4 @@
 void init_timer();
 void send_eoi(uint8_t irq);
 
-#endif
+#endif /* PIC_H */

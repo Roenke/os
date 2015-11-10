@@ -4,4 +4,4 @@
 void init_serial();
 char read_serial();
 
-#endif
+#endif /* SERIAL_PORT_H */

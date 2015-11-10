@@ -3,4 +3,4 @@
 
 void init_idt();
 
-#endif
+#endif /* IDT_H */

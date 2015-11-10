@@ -15,7 +15,7 @@ uint32_t task_count = 0;
 int      stacks[1000 * 1024];
 task_t   tasks[1001];
 
-void initialize_multithreading()
+void init_multithreading()
 {
     current_task = &main_thread;
     current_task->next = current_task;
@@ -62,5 +62,4 @@ void next_task()
     task_t *previous_task = current_task;
     current_task = current_task->next;
     switch_task(&(previous_task->regs), current_task->regs);
-
 }

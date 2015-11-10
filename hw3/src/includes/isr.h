@@ -12,4 +12,4 @@ struct state
 
 typedef struct state state_t;
 
-#endif
+#endif /* ISR_H */

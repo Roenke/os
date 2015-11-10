@@ -16,7 +16,7 @@ typedef struct context context_t;
 typedef struct task task_t;
 typedef void   (*thread_function)(void);
 
-void initialize_multithreading();
+void init_multithreading();
 void add_task(thread_function fun);
 void next_task(); 
 
