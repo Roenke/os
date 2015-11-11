@@ -19,7 +19,7 @@ typedef struct multiboot_info multiboot_info_t;
 struct mmap_info{
     uint32_t size;
     uint64_t base_addr;
-    uint64_t lenght;
+    uint64_t length;
     uint32_t type;
 }__attribute__((packed));
 typedef struct mmap_info mmap_info_t;

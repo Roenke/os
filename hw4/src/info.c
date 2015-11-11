@@ -11,7 +11,7 @@ void about_cmdline(multiboot_info_t *mis)
     }
     else
     {
-        printf("cmdline does mot valid\n");
+        printf("cmdline not available\n");
     }
 }
 
@@ -19,17 +19,24 @@ void about_mmap(multiboot_info_t *mis)
 {
     if(mis->flags & MMAP_IS_VALID)
     {
-        uint32_t addr = mis->mmap_addr;
-        const uint32_t last_addr = addr + mis->mmap_length;
-
-        mmap_info_t* mmap_info_prt = addr;
-        while(mmap_info_prt < last_addr)
+        const uint32_t last_addr = mis->mmap_addr + mis->mmap_length;
+        uint32_t* upper_bytes;
+        uint32_t* down_bytes;
+        uint64_t end_addr;
+        mmap_info_t* mmap_info_prt = (mmap_info_t*)mis->mmap_addr;
+        while((uint32_t)mmap_info_prt < last_addr)
         {
-            printf("length = %x\n", mmap_info_prt->lenght);
-            printf("size = %d\n", mmap_info_prt->size);
-            printf("type = %d\n", mmap_info_prt->type);
-            mmap_info_prt = (uint32_t)mmap_info_prt + (mmap_info_prt->size + 4);
-            printf("new_address = %x\n", mmap_info_prt);
+            down_bytes = (uint32_t*)&(mmap_info_prt->base_addr);
+            upper_bytes = down_bytes + 1;
+            printf("memory-range: 0x%x%x -", *upper_bytes, *down_bytes);
+
+            end_addr = mmap_info_prt->base_addr + mmap_info_prt->length - 1;
+            down_bytes = (uint32_t*)&(end_addr);
+            upper_bytes = down_bytes + 1;
+            printf("0x%x%x, type %d\n", *upper_bytes, *down_bytes, mmap_info_prt->type);
+
+            mmap_info_prt = (mmap_info_t*)
+                ((uint32_t)mmap_info_prt + (mmap_info_prt->size + 4));
         }
     }
     else
