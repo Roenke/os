@@ -49,7 +49,8 @@ void about_mmap(multiboot_info_t *mis)
     }
 }
 
-struct rsdp_descriptor {
+struct rsdp_descriptor 
+{
  char signature[8];
  uint8_t checksum;
  char oemid[6];
@@ -57,6 +58,65 @@ struct rsdp_descriptor {
  uint32_t rsdt_address;
 } __attribute__ ((packed));
 typedef struct rsdp_descriptor rsdp_descriptor_t;
+
+struct acpi_sdt_header {
+  char signature[4];
+  uint32_t length;
+  uint8_t revision;
+  uint8_t checksum;
+  char oemid[6];
+  char oem_table_id[8];
+  uint32_t oem_revision;
+  uint32_t creator_id;
+  uint32_t creator_revision;
+  uint32_t local_controller_address;
+  uint32_t flags;
+};
+typedef struct acpi_sdt_header acpi_sdt_header_t;
+
+struct rsdt
+{
+    acpi_sdt_header_t header;
+    uint32_t* pointer_to_other_sdt; 
+};
+typedef struct rsdt rsdt_t;
+
+struct madt_header
+{
+    uint8_t entry_type;
+    uint8_t record_length;
+};
+typedef struct madt_header madt_header_t;
+
+struct proc_local_apic
+{
+    madt_header_t header;
+    uint8_t  acpi_processor_id;
+    uint8_t  apic_id;
+    uint32_t flags;
+};
+typedef struct proc_local_apic proc_local_apic_t;
+
+struct io_apic
+{
+    madt_header_t header;
+    uint8_t io_apics_id;
+    uint8_t reserved;
+    uint32_t io_apic_address;
+    uint32_t global_system_interrupt_base;
+};
+typedef struct io_apic io_apic_t;
+
+struct interrupt_source_override
+{
+    madt_header_t header;
+    uint8_t bus_source;
+    uint8_t irq_source;
+    uint32_t global_system_interrupt;
+    uint16_t flags;
+};
+
+typedef struct interrupt_source_override interrupt_source_override_t;
 
 void about_apic()
 {
@@ -103,5 +163,18 @@ void about_apic()
     {
         printf("descriptor found :)\n");
         printf("Rsdt address = 0x%x\n", desc_ptr->rsdt_address);
+        rsdt_t* rsdt_ptr = (rsdt_t*) desc_ptr->rsdt_address;
+        uint32_t entries_count = (rsdt_ptr->header.length - sizeof(rsdt_ptr->header)) / 4;
+        printf("%s\n", rsdt_ptr->header.signature);
+        printf("Entries count = %d\n", entries_count);
+        uint32_t i = 0;
+        
+        while(i < entries_count)
+        {
+            madt_header_t* header = (madt_header_t*) rsdt_ptr->pointer_to_other_sdt[i];
+            uint32_t type = header->entry_type;
+            // printf("endtry type %d : %d\n", i, type);
+            // ++i;
+        }
     }
 }
