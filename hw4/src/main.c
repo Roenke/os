@@ -3,6 +3,7 @@
 #include "includes/pic.h"
 #include "includes/int_types.h"
 #include "includes/info.h"
+#include "includes/info_acpi.h"
 
 void cmain(multiboot_info_t* mis)
 {
@@ -17,6 +18,6 @@ void cmain(multiboot_info_t* mis)
 
     // asm volatile ("sti");
     
-    
+
     while(1);
 }

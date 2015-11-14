@@ -26,6 +26,5 @@ typedef struct mmap_info mmap_info_t;
 
 void about_cmdline(multiboot_info_t*);
 void about_mmap(multiboot_info_t*);
-void about_apic();
 
 #endif /* INFO_H */
