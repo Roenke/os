@@ -7,6 +7,11 @@
 #define MEM_REG_BEGIN     0x000E0000
 #define MEM_REG_END       0x000FFFFF
 
+#define PROC_LOCAL_APIC_TYPE          0x0
+#define IO_APIC_TYPE                  0x1
+#define LOCAL_APIC_ADDR_OVERRIDE_TYPE 0x5
+#define PROC_LOCAL_X2_APIC_TYPE       0x9
+
 void about_cmdline(multiboot_info_t *mis)
 {
     if(mis->flags & CMDLINE_IS_VALID)
@@ -84,7 +89,6 @@ struct madt {
     sdt_header_t header;
     uint32_t local_controller_address;
     uint32_t flags;
-    madt_entry_header_t entry;
 }__attribute__ ((packed));
 typedef struct madt madt_t;
 
@@ -107,7 +111,7 @@ typedef struct proc_local_apic proc_local_apic_t;
 struct io_apic
 {
     madt_entry_header_t header;
-    uint8_t io_apics_id;
+    uint8_t io_apic_id;
     uint8_t reserved;
     uint32_t io_apic_address;
     uint32_t global_system_interrupt_base;
@@ -141,9 +145,8 @@ void* find_madt(rsdt_t *root_sdt)
     while(i < entries)
     {
         madt_t *madt = (madt_t *) root_sdt->pointer_to_other_sdt[i];
-        printf("%s\n", madt->header.signature);
         char* signature_ptr = (char*)(madt->header.signature);
-        if (*signature_ptr == 'A' &&
+        if (*signature_ptr       == 'A' &&
             *(signature_ptr + 1) == 'P' &&
             *(signature_ptr + 2) == 'I' &&
             *(signature_ptr + 3) == 'C')
@@ -154,27 +157,10 @@ void* find_madt(rsdt_t *root_sdt)
     return 0;
 }
 
-void about_apic()
+void* find_rsdt_substring(char* from, char* to)
 {
-    uint8_t is_ebda_successed;
-    uint8_t is_mem_reg_successed;
-    uint16_t* ebda_addr = (uint16_t*)MAGIC_POINTER;
-    uint32_t ebda_value = *ebda_addr;
-    char* ebda_ptr = (char*)ebda_value;
-    printf("%x\n", *ebda_ptr);
-    char* end_addr = ebda_ptr + EBDA_FIND_LENGTH;
-    while(ebda_ptr < end_addr)
-    {
-        if(*ebda_ptr == 'R'){
-            printf("FOUND!!!\n");
-        }
-        ++ebda_ptr;
-    }
-
-    rsdp_descriptor_t* desc_ptr = 0;
-    char* mem_ptr = (char*)MEM_REG_BEGIN;
-    char* mem_end = (char*)MEM_REG_END;
-    while(mem_ptr < mem_end)
+    char* mem_ptr = from;
+    while(mem_ptr + 7 < to)
     {
         if( *mem_ptr       == 'R' && 
             *(mem_ptr + 1) == 'S' && 
@@ -185,47 +171,101 @@ void about_apic()
             *(mem_ptr + 6) == 'R' && 
             *(mem_ptr + 7) == ' ')
         {
-            desc_ptr = (rsdp_descriptor_t*) mem_ptr;
-            break;
+            return mem_ptr;
         }
         ++mem_ptr;
     }
 
-    if(desc_ptr == 0)
+    return 0;
+}
+
+void* find_rsd_ptr()
+{
+    uint16_t* ebda_addr = (uint16_t*)MAGIC_POINTER;
+    uint32_t ebda_value = (uint32_t)(*ebda_addr);
+
+    char* ebda_ptr = (char*)ebda_value;
+    char* end_addr = ebda_ptr + EBDA_FIND_LENGTH;
+
+    // Найдем только один адрес, соответствующий первой найденной строке "RSD PTR "
+    void* result = find_rsdt_substring(ebda_ptr, end_addr);
+    if(result == (void*) 0){
+        result = find_rsdt_substring((char*)MEM_REG_BEGIN, (char*)MEM_REG_END);
+    }
+
+    return result;
+}
+
+void print_madt_info(madt_t* madt)
+{
+    if(madt->flags & 0x1) 
     {
-        printf("descriptor not found :(\n");
+        printf("PC/AT dual PIC supported.\n");
     }
     else
     {
-        printf("descriptor found :)\n");
-        printf("Rsdt address = 0x%x\n", desc_ptr->rsdt_address);
-        rsdt_t* rsdt_ptr = (rsdt_t*) desc_ptr->rsdt_address;
-        uint32_t entries_count = (rsdt_ptr->header.length - sizeof(rsdt_ptr->header)) / 4;
-        printf("%s\n", rsdt_ptr->header.signature);
-        printf("Entries count = %d\n", entries_count);
-        uint32_t i = 0;
-        printf("signature =  %s\n", rsdt_ptr->header.signature);    
-        
-        madt_t* madt_ptr = find_madt(rsdt_ptr);
-
-        if(madt_ptr->flags & 0x1) 
-        {
-            printf("PC/AT dual PIC supported.\n");
-        }
-        else
-        {
-            printf("PC/AT dual PIC not supported.\n");
-        }
-
-        uint32_t local_apic_address = madt_ptr->local_controller_address;
-        printf("local apic address = %x\n", local_apic_address);
-
-        if((void*)madt_ptr != 0)
-        {
-            printf("%s\n", "APIC found");
-            printf("length = %d\n", madt_ptr->header.length);
-        }
-
-
+        printf("PC/AT dual PIC not supported.\n");
     }
+
+    uint32_t local_apic_address = madt->local_controller_address;
+
+    void* end_of_madt = (void*) madt + madt->header.length;
+    // printf("madt: 0x%x - 0x%x (%d bytes)\n", (uint32_t)madt, end_of_madt, madt->header.length);
+
+    madt_entry_header_t* entry_ptr = (void*) madt + sizeof(*madt);
+    // printf("type = %d, length = %d\n", entry_ptr->entry_type, entry_ptr->record_length);
+    // entry_ptr += entry_ptr->record_length;
+    proc_local_apic_t* local_apic;
+    io_apic_t* io_apic;
+    local_apic_address_override_t* new_local_address_ptr;
+    processor_local_x2apic_t* x2_apic_ptr;
+
+    while((void*) entry_ptr <= end_of_madt)
+    {
+        // printf("type = %d, length = %d\n", entry_ptr->entry_type, entry_ptr->record_length);
+        
+        switch(entry_ptr->entry_type)
+        {
+            case PROC_LOCAL_APIC_TYPE:
+                // printf("Processor Local APIC found\n");
+                local_apic = (proc_local_apic_t*)entry_ptr;
+                printf("Local APIC %d\n", local_apic->apic_id);
+                break;
+            case IO_APIC_TYPE:
+                // printf("I/O APIC found\n");
+                io_apic = (io_apic_t*)entry_ptr;
+                printf("IOAPIC %d at 0x%x IRQs from %d\n", io_apic->io_apic_id, io_apic->io_apic_address, io_apic->global_system_interrupt_base);
+                break;
+            case LOCAL_APIC_ADDR_OVERRIDE_TYPE:
+                // printf("Local APIC Address Override found\n");
+                new_local_address_ptr = (local_apic_address_override_t*) entry_ptr;
+                local_apic_address = new_local_address_ptr->local_apic_address;
+                break;
+            case PROC_LOCAL_X2_APIC_TYPE:
+                // printf("Processor Local x2APIC found\n");
+                x2_apic_ptr = (processor_local_x2apic_t*) entry_ptr;
+                printf("Local x2APIC %d\n", x2_apic_ptr->x2apic_id);
+                break;
+        }
+
+        entry_ptr = (madt_t*)((void*)entry_ptr + entry_ptr->record_length);
+    }
+
+    printf("Local APICs accessible at 0x%x\n", local_apic_address);
+}
+
+void about_apic()
+{
+    rsdp_descriptor_t* desc_ptr = (rsdp_descriptor_t*)find_rsd_ptr();
+
+    if(desc_ptr == 0)
+    {
+        printf("descriptor not found :(\n");
+        return;
+    } 
+    
+    madt_t* madt_ptr = find_madt((rsdt_t*)(desc_ptr->rsdt_address));
+
+
+    print_madt_info(madt_ptr);
 }
