@@ -15,7 +15,8 @@ void cmain(multiboot_info_t* mis)
     about_mmap(mis);
     about_apic();
 
-    //asm volatile ("sti");
+    // asm volatile ("sti");
+    
     
     while(1);
 }

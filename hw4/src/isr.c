@@ -17,7 +17,7 @@ void isr_handler(state_t state)
         ++skipped;
         if (skipped == interrupts_before_tick) 
         {
-            //printf ("tick\n");
+            // printf ("tick\n");
             skipped = 0;
         }
 

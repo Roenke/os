@@ -59,64 +59,100 @@ struct rsdp_descriptor
 } __attribute__ ((packed));
 typedef struct rsdp_descriptor rsdp_descriptor_t;
 
-struct acpi_sdt_header {
-  char signature[4];
-  uint32_t length;
-  uint8_t revision;
-  uint8_t checksum;
-  char oemid[6];
-  char oem_table_id[8];
-  uint32_t oem_revision;
-  uint32_t creator_id;
-  uint32_t creator_revision;
-  uint32_t local_controller_address;
-  uint32_t flags;
-};
-typedef struct acpi_sdt_header acpi_sdt_header_t;
-
-struct rsdt
+struct sdt_header
 {
-    acpi_sdt_header_t header;
-    uint32_t* pointer_to_other_sdt; 
+    char signature[4];
+    uint32_t length;
+    uint8_t revision;
+    uint8_t checksum;
+    char oemid[6];
+    char oem_table_id[8];
+    uint32_t oem_revision;
+    uint32_t creator_id;
+    uint32_t creator_revision;
 };
-typedef struct rsdt rsdt_t;
+typedef struct sdt_header sdt_header_t;
 
-struct madt_header
+struct madt_entry_header
 {
     uint8_t entry_type;
     uint8_t record_length;
-};
-typedef struct madt_header madt_header_t;
+}__attribute__ ((packed));
+typedef struct madt_entry_header madt_entry_header_t;
+
+struct madt {
+    sdt_header_t header;
+    uint32_t local_controller_address;
+    uint32_t flags;
+    madt_entry_header_t entry;
+}__attribute__ ((packed));
+typedef struct madt madt_t;
+
+struct rsdt
+{
+    sdt_header_t header;
+    uint32_t pointer_to_other_sdt[]; 
+}__attribute__ ((packed));
+typedef struct rsdt rsdt_t;
 
 struct proc_local_apic
 {
-    madt_header_t header;
+    madt_entry_header_t header;
     uint8_t  acpi_processor_id;
     uint8_t  apic_id;
     uint32_t flags;
-};
+}__attribute__ ((packed));
 typedef struct proc_local_apic proc_local_apic_t;
 
 struct io_apic
 {
-    madt_header_t header;
+    madt_entry_header_t header;
     uint8_t io_apics_id;
     uint8_t reserved;
     uint32_t io_apic_address;
     uint32_t global_system_interrupt_base;
-};
+}__attribute__ ((packed));
 typedef struct io_apic io_apic_t;
 
-struct interrupt_source_override
+struct local_apic_address_override
 {
-    madt_header_t header;
-    uint8_t bus_source;
-    uint8_t irq_source;
-    uint32_t global_system_interrupt;
-    uint16_t flags;
-};
+    madt_entry_header_t header;
+    uint16_t reserved;
+    uint64_t local_apic_address;
+}__attribute__ ((packed));
+typedef struct local_apic_address_override local_apic_address_override_t;
 
-typedef struct interrupt_source_override interrupt_source_override_t;
+struct processor_local_x2apic
+{
+    madt_entry_header_t header;
+    uint16_t reserved;
+    uint32_t x2apic_id;
+    uint32_t flags;
+    uint32_t acpi_processor_uid;
+}__attribute__ ((packed));
+typedef struct processor_local_x2apic processor_local_x2apic_t;
+
+
+void* find_madt(rsdt_t *root_sdt)
+{
+    uint32_t entries = (root_sdt->header.length - sizeof(root_sdt->header)) / 4;
+    
+    uint32_t i = 0;
+    while(i < entries)
+    {
+        madt_t *madt = (madt_t *) root_sdt->pointer_to_other_sdt[i];
+        printf("%s\n", madt->header.signature);
+        char* signature_ptr = (char*)(madt->header.signature);
+        if (*signature_ptr == 'A' &&
+            *(signature_ptr + 1) == 'P' &&
+            *(signature_ptr + 2) == 'I' &&
+            *(signature_ptr + 3) == 'C')
+            return (void *) madt;
+        ++i;
+    }
+ 
+    return 0;
+}
 
 void about_apic()
 {
@@ -168,13 +204,28 @@ void about_apic()
         printf("%s\n", rsdt_ptr->header.signature);
         printf("Entries count = %d\n", entries_count);
         uint32_t i = 0;
+        printf("signature =  %s\n", rsdt_ptr->header.signature);    
         
-        while(i < entries_count)
+        madt_t* madt_ptr = find_madt(rsdt_ptr);
+
+        if(madt_ptr->flags & 0x1) 
         {
-            madt_header_t* header = (madt_header_t*) rsdt_ptr->pointer_to_other_sdt[i];
-            uint32_t type = header->entry_type;
-            // printf("endtry type %d : %d\n", i, type);
-            // ++i;
+            printf("PC/AT dual PIC supported.\n");
         }
+        else
+        {
+            printf("PC/AT dual PIC not supported.\n");
+        }
+
+        uint32_t local_apic_address = madt_ptr->local_controller_address;
+        printf("local apic address = %x\n", local_apic_address);
+
+        if((void*)madt_ptr != 0)
+        {
+            printf("%s\n", "APIC found");
+            printf("length = %d\n", madt_ptr->header.length);
+        }
+
+
     }
 }
